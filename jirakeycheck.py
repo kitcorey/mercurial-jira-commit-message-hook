@@ -12,7 +12,7 @@ def checkCommitMessage(ui, repo, **kwargs):
     Every commit message must include JIRA issue key
     Example:
 
-    PRJ-42 - added meaning of life
+    PRJ-42: added meaning of life
 
     Include this hook in .hg/hgrc
 
@@ -58,13 +58,13 @@ def checkMessage(msg):
     Checks message for matching regex
 
     Correct message example:
-    PRJ-123 - your commit message here
+    PRJ-123: your commit message here
 
-    #"PRJ-123 - " is necessary prefix here
+    #"PRJ-123: " is necessary prefix here
     """
     is_correct = False
     re_names = '|'.join(['%s-\d+' % name for name in JIRA_PROJECTS])
-    p = re.compile('^(%s) - ' % re_names)
+    p = re.compile('^(%s): ' % re_names)
     res = p.search(msg)
     if res:
         is_correct = True
@@ -75,5 +75,5 @@ def printUsage(ui):
     ui.warn('=====\n')
     ui.warn('Commit message must have JIRA issue key\n')
     ui.warn('Example:\n')
-    ui.warn('PRJ-42 - the answer to life, universe and everything \n')
+    ui.warn('PRJ-42: the answer to life, universe and everything \n')
     ui.warn('=====\n')

@@ -44,14 +44,14 @@ class TestParsedThreadGrab(unittest.TestCase):
         and return FALSE (yep, that's hg invert logic )
         """
         jk.JIRA_PROJECTS = ['MYPRJ']
-        r = self.commit('MYPRJ-1 - test')
+        r = self.commit('MYPRJ-1: test')
         self.assertEqual(r, self.OK)
 
-        r = self.commit('MYPRJ-1 - test')
+        r = self.commit('MYPRJ-1: test')
         self.assertEqual(r, self.OK)
 
         #message can be even empty but with project prefix
-        r = self.commit('MYPRJ-1 - ')
+        r = self.commit('MYPRJ-1: ')
         self.assertEqual(r, self.OK)
 
     def test_no_jira_prj(self):
@@ -60,13 +60,13 @@ class TestParsedThreadGrab(unittest.TestCase):
         script should fail
         """
         jk.JIRA_PROJECTS = ['MYPRJ']
-        r = self.commit('NOPROJ-1 - test')
+        r = self.commit('NOPROJ-1: test')
         self.assertEqual(r, self.BAD_COMMIT)
 
     def test_bad_commit_msg(self):
         """
          Test all sorts of messages that not pass commit msg pattern:
-         <PROJECT-111 - ><commit message>
+         <PROJECT-111: ><commit message>
         """
         jk.JIRA_PROJECTS = ['PRJ']
 
@@ -76,13 +76,13 @@ class TestParsedThreadGrab(unittest.TestCase):
         r = self.commit('PRJ-123 commit msg')
         self.assertEqual(r, self.BAD_COMMIT)
 
-        r = self.commit('PRJ- - commit msg')
+        r = self.commit('PRJ-: commit msg')
         self.assertEqual(r, self.BAD_COMMIT)
 
-        r = self.commit('XXX-123 - commit msg')
+        r = self.commit('XXX-123: commit msg')
         self.assertEqual(r, self.BAD_COMMIT)
 
-        r = self.commit('PRJ--123 - commit msg')
+        r = self.commit('PRJ--123: commit msg')
         self.assertEqual(r, self.BAD_COMMIT)
 
     def test_empty_msg(self):
