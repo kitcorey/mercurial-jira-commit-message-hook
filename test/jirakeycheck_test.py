@@ -3,6 +3,7 @@
 import sys
 import unittest
 from mock import MagicMock, patch
+import logging
 
 sys.path.append('../')
 import jirakeycheck as jk
@@ -10,6 +11,7 @@ import jirakeycheck as jk
 
 class MockRepo():
     """ Mock for mercurial repo object which is sent by enviroment """
+    root = ""
 
     def __getitem__(self, item):
         """ for simplicity all sub-methods present in same class """
@@ -17,6 +19,7 @@ class MockRepo():
 
     def description(self):
         return "mocked description"
+    
 
 
 class MockUI():
@@ -43,15 +46,14 @@ class TestParsedThreadGrab(unittest.TestCase):
         script should pass successfully
         and return FALSE (yep, that's hg invert logic )
         """
-        jk.JIRA_PROJECTS = ['MYPRJ']
-        r = self.commit('MYPRJ-1: test')
+        r = self.commit('MYPRJ-1: test', 'MYPRJ')
         self.assertEqual(r, self.OK)
 
-        r = self.commit('MYPRJ-1: test')
+        r = self.commit('MYPRJ-1: test', 'MYPRJ')
         self.assertEqual(r, self.OK)
 
         #message can be even empty but with project prefix
-        r = self.commit('MYPRJ-1: ')
+        r = self.commit('MYPRJ-1: ', 'MYPRJ')
         self.assertEqual(r, self.OK)
 
     def test_no_jira_prj(self):
@@ -59,8 +61,7 @@ class TestParsedThreadGrab(unittest.TestCase):
         When message fits pattern but jira project doesn't exist
         script should fail
         """
-        jk.JIRA_PROJECTS = ['MYPRJ']
-        r = self.commit('NOPROJ-1: test')
+        r = self.commit('NOPROJ-1: test', 'MYPRJ')
         self.assertEqual(r, self.BAD_COMMIT)
 
     def test_bad_commit_msg(self):
@@ -68,21 +69,19 @@ class TestParsedThreadGrab(unittest.TestCase):
          Test all sorts of messages that not pass commit msg pattern:
          <PROJECT-111: ><commit message>
         """
-        jk.JIRA_PROJECTS = ['PRJ']
-
-        r = self.commit('plain commit msg')
+        r = self.commit('plain commit msg', 'PRJ')
         self.assertEqual(r, self.BAD_COMMIT)
 
-        r = self.commit('PRJ-123 commit msg')
+        r = self.commit('PRJ-123 commit msg', 'PRJ')
         self.assertEqual(r, self.BAD_COMMIT)
 
-        r = self.commit('PRJ-: commit msg')
+        r = self.commit('PRJ-: commit msg', 'PRJ')
         self.assertEqual(r, self.BAD_COMMIT)
 
-        r = self.commit('XXX-123: commit msg')
+        r = self.commit('XXX-123: commit msg', 'PRJ')
         self.assertEqual(r, self.BAD_COMMIT)
 
-        r = self.commit('PRJ--123: commit msg')
+        r = self.commit('PRJ--123: commit msg', 'PRJ')
         self.assertEqual(r, self.BAD_COMMIT)
 
     def test_empty_msg(self):
@@ -91,8 +90,11 @@ class TestParsedThreadGrab(unittest.TestCase):
          jira project name prefix
         """
         jk.JIRA_PROJECTS = ['TEST', 'PRJ']
-        r = self.commit('')
+        r = self.commit('', 'PRJ')
         self.assertEqual(r, self.BAD_COMMIT)
+
+        r = self.commit('', '')
+        self.assertEqual(r, self.OK)
 
     @patch('jirakeycheck.checkMessage')
     def test_check_msg_call(self, test_checkMsg):
@@ -100,7 +102,7 @@ class TestParsedThreadGrab(unittest.TestCase):
         Test that checkMessage has been called
         """
         test_checkMsg.return_value = True
-        jk.checkCommitMessage(ui=self.ui, repo=self.repo)
+        res = self.commit('PRJ:', 'PRJ')
         self.assertTrue(jk.checkMessage.called)
 
     @patch('jirakeycheck.checkMessage')
@@ -110,7 +112,7 @@ class TestParsedThreadGrab(unittest.TestCase):
         finished with success
         """
         test_checkMsg.return_value = True
-        res = jk.checkCommitMessage(ui=self.ui, repo=self.repo)
+        res = self.commit('PRJ:', 'PRJ')
         self.assertEqual(res, self.OK)
 
     @patch('jirakeycheck.checkMessage')
@@ -120,7 +122,7 @@ class TestParsedThreadGrab(unittest.TestCase):
          the whole script fails and block commit
         """
         test_checkMsg.return_value = False
-        res = jk.checkCommitMessage(ui=self.ui, repo=self.repo)
+        res = self.commit('PRJ:', 'PRJ')
         self.assertEqual(res, self.BAD_COMMIT)
 
     @patch('jirakeycheck.checkMessage')
@@ -130,21 +132,27 @@ class TestParsedThreadGrab(unittest.TestCase):
         must see output info message.
         """
         with patch.object(MockUI, 'warn') as self.ui.warn:
-            #jk.checkMessage = MagicMock(return_value=False)
-            test_checkMsg.return_value = False
-            jk.checkCommitMessage(ui=self.ui, repo=self.repo)
-            self.assertTrue(self.ui.warn.called)
+            with patch('jirakeycheck.getJIRAProjectFromDirectoryName', return_value='PRJ') as patch_method:
+                #jk.checkMessage = MagicMock(return_value=False)
+                test_checkMsg.return_value = False
+                jk.checkCommitMessage(ui=self.ui, repo=self.repo)
+                self.assertTrue(self.ui.warn.called)
 
-    def commit(self, msg):
+    def commit(self, msg, project):
         """
          Emulate commit hook and return hook result:
          False - everything is ok, hook passed
          True - commit didn't pass, hook failed
         """
+        self.repo.root = ""
         self.repo.description = MagicMock(return_value=msg)
-        hook_result = jk.checkCommitMessage(ui=self.ui, repo=self.repo)
+
+        with patch('jirakeycheck.getJIRAProjectFromDirectoryName', return_value=project) as patch_method:
+            hook_result = jk.checkCommitMessage(ui=self.ui, repo=self.repo)
         return hook_result
 
 
 if __name__ == '__main__':
+    logger = logging.getLogger()
+    logger.level = logging.DEBUG
     unittest.main()
