@@ -9,16 +9,16 @@ See example_jirakeycheck.yaml for an example
 Installation
 ------------
 1. Copy `jirakeycheck.py` to ~/.hg (or any dir you like)
-2. Add the following lines to $HOME/.hgrc
-<div>
-<pre>
-[hooks]
-   #check all outgoing commits
-   pretxncommit.jirakeycheck = python:~/.hg/jirakeycheck.py:checkCommitMessage
+2. Add the following lines to $HOME/.hgrc:
 
-   #Check all incoming commits when you pull. Good for pull requests control
-   pretxnchangegroup.jirakeycheckall = python:~/.hg/jirakeycheck.py:checkAllCommitMessage
-</pre>
-</div>
+    ```
+    [hooks]
+       #check all outgoing commits
+       pretxncommit.jirakeycheck = python:~/.hg/jirakeycheck.py:checkCommitMessage
+
+       #Check all incoming commits when you pull. Good for pull requests control
+       pretxnchangegroup.jirakeycheckall = python:~/.hg/jirakeycheck.py:checkAllCommitMessage
+    ```
+
 3. Copy example_jirakeycheck.yaml to ~/.config/jirakeycheck.yaml
 4. Set your JIRA projects and repo names in ~/.config/jirakeycheck.yaml
