@@ -1,0 +1,14 @@
+# Projects is a dictionary that maps JIRA board names to a
+# list of regular expressions.  If one of the regular expressions
+# matches the current directory, then the script will verify
+# that commit messages are prefixed with an issue id for the
+# JIRA board
+# asdf
+# @note regexes MUST be quoted in yaml
+projects:
+  MYPROJ:
+    - "(^my-project)|(.*myprj)"
+    - 'project'
+  OTHERPROJ:
+    - "^other-project"
+

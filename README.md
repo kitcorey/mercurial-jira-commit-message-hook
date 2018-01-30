@@ -3,9 +3,8 @@ Mercurial hook for jira
 
 The Mercurial hook checks that jira key exist in commit message.
 
-If no jira key provided, hook fails and commit transaction rollback.
-
-Available JIRA projects set in the list `JIRA_PROJECTS`
+The expected JIRA project is based on the name of the repository, and is configured in `~/.config/jirakeycheck.yaml`
+See example_jirakeycheck.yaml for an example
 
 Installation
 ------------
@@ -21,4 +20,5 @@ Installation
    pretxnchangegroup.jirakeycheckall = python:~/.hg/jirakeycheck.py:checkAllCommitMessage
 </pre>
 </div>
-3. Set your JIRA project keys in array `JIRA_PROJECTS` in jirakeycheck.py
+3. Copy example_jirakeycheck.yaml to ~/.config/jirakeycheck.yaml
+4. Set your JIRA projects and repo names in ~/.config/jirakeycheck.yaml

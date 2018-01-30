@@ -27,13 +27,14 @@ def getJIRAProjectFromDirectoryName(directoryName):
     If there are no matches, return an empty string
     """
     cfg = readConfiguration()
-    JIRA_PROJECTS = cfg.get('projects', None)
-    if JIRA_PROJECTS is None:
+    jiraProjects = cfg.get('projects', None)
+    if jiraProjects is None:
         return ""
 
-    for projectName, directoryRegex in JIRA_PROJECTS.iteritems():
-        if re.search(directoryRegex, directoryName):
-            return projectName
+    for projectName, directoryRegexes in jiraProjects.iteritems():
+        for directoryRegex in directoryRegexes:
+            if re.search(directoryRegex, directoryName):
+                return projectName
 
     return ""
 
@@ -56,7 +57,7 @@ def checkCommitMessage(ui, repo, **kwargs):
 
     hg_commit_message = repo['tip'].description()
     if checkMessage(hg_commit_message, jiraProject) is False:
-        printUsage(ui)
+        printUsage(ui, jiraProject)
         #reject commit transaction
         return BAD_COMMIT
     else:
@@ -109,9 +110,9 @@ def checkMessage(msg, jiraProject):
     return is_correct
 
 
-def printUsage(ui):
+def printUsage(ui, board):
     ui.warn('=====\n')
-    ui.warn('Commit message must have JIRA issue key\n')
+    ui.warn('Commit message must have {} issue key\n'.format(board))
     ui.warn('Example:\n')
-    ui.warn('PRJ-42: the answer to life, universe and everything \n')
+    ui.warn('{}-42: the answer to life, universe and everything \n'.format(board))
     ui.warn('=====\n')
