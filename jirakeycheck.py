@@ -51,6 +51,7 @@ def checkCommitMessage(ui, repo, **kwargs):
     [hooks]
     pretxncommit.jirakeycheck = python:/path/jirakeycheck.py:checkCommitMessage
     """
+
     jiraProject = getJIRAProjectFromDirectoryName(os.path.basename(repo.root))
     if not jiraProject:
         return OK

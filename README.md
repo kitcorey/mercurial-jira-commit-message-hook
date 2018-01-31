@@ -8,13 +8,16 @@ See example_jirakeycheck.yaml for an example
 
 Installation
 ------------
-1. Copy `jirakeycheck.py` to ~/.hg (or any dir you like)
+1. Copy `jirakeycheck.py` and `commitwrapper.py` to ~/.hg (or any dir you like)
 2. Add the following lines to $HOME/.hgrc:
 
     ```
+    [extensions]
+       # wrapper so that only manual commits will use the manualpre(txn)commit hooks
+       manualcommithook = ~/.hg/commitwrapper.py
     [hooks]
-       #check all outgoing commits
-       pretxncommit.jirakeycheck = python:~/.hg/jirakeycheck.py:checkCommitMessage
+       #check all manual outgoing commits
+       manualpretxncommit = python:~/.hg/jirakeycheck.py:checkCommitMessage
     ```
 
 3. Copy example_jirakeycheck.yaml to ~/.config/jirakeycheck.yaml
