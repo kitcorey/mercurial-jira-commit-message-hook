@@ -104,7 +104,7 @@ def checkMessage(msg, jiraProject):
 
     is_correct = False
     re_names = '%s-\d+' % jiraProject
-    p = re.compile('^(%s): ' % re_names)
+    p = re.compile('(^({0}): )|(^Merge {0})'.format(re_names))
     res = p.search(msg)
     if res:
         is_correct = True
