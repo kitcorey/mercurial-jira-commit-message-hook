@@ -1,32 +1,36 @@
 #coding: utf-8
 import os
 import re
-import yaml
-from os.path import expanduser
+import json
+
 #If the hook returns True - hook fails
 BAD_COMMIT = True
 OK = False
-CONFIG_FILE = "~/.config/jirakeycheck.yaml"
+CONFIG_FILE = "~/.config/jirakeycheck.json"
 
-def readConfiguration():
+def readConfiguration(ui):
     """Read configuration from the CONFIG_FILE directory"""
     #List of the available JIRA projects
     try:
-        with open(expanduser(CONFIG_FILE), 'r') as cfgfile:
-            cfg = yaml.load(cfgfile)
+        with open(os.path.expanduser(CONFIG_FILE), 'r') as cfgfile:
+            cfg = json.load(cfgfile)
     except IOError:
+        ui.warn("Could not read {}".format(CONFIG_FILE))
+        cfg = {}
+    except ValueError as e:
+        ui.warn("Could not parse {} as valid json: {}".format(CONFIG_FILE, e))
         cfg = {}
 
     return cfg
 
 
-def getJIRAProjectFromDirectoryName(directoryName):
+def getJIRAProjectFromDirectoryName(directoryName, ui):
     """Given the basename for a directory, return the first
     JIRA project that has a matching regex.
     
     If there are no matches, return an empty string
     """
-    cfg = readConfiguration()
+    cfg = readConfiguration(ui)
     jiraProjects = cfg.get('projects', None)
     if jiraProjects is None:
         return ""
@@ -52,7 +56,7 @@ def checkCommitMessage(ui, repo, **kwargs):
     pretxncommit.jirakeycheck = python:/path/jirakeycheck.py:checkCommitMessage
     """
 
-    jiraProject = getJIRAProjectFromDirectoryName(os.path.basename(repo.root))
+    jiraProject = getJIRAProjectFromDirectoryName(os.path.basename(repo.root), ui)
     if not jiraProject:
         return OK
 
@@ -104,7 +108,7 @@ def checkMessage(msg, jiraProject):
 
     is_correct = False
     re_names = '%s-\d+' % jiraProject
-    p = re.compile('(^({0}): )|(^Merge {0})'.format(re_names))
+    p = re.compile('(^({0}): )|(^Merge {0})|(^Merging {0})'.format(re_names))
     res = p.search(msg)
     if res:
         is_correct = True
@@ -114,6 +118,7 @@ def checkMessage(msg, jiraProject):
 def printUsage(ui, board):
     ui.warn('=====\n')
     ui.warn('Commit message must have {} issue key\n'.format(board))
-    ui.warn('Example:\n')
+    ui.warn('Examples:\n')
     ui.warn('{}-42: the answer to life, universe and everything \n'.format(board))
+    ui.warn('Merge {}-42 into upstream\n'.format(board))
     ui.warn('=====\n')

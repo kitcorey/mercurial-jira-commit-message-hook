@@ -55,6 +55,9 @@ class TestParsedThreadGrab(unittest.TestCase):
         r = self.commit('Merge MYPRJ-1', 'MYPRJ')
         self.assertEqual(r, self.OK)
 
+        r = self.commit('Merging MYPRJ-1', 'MYPRJ')
+        self.assertEqual(r, self.OK)
+
         #message can be even empty but with project prefix
         r = self.commit('MYPRJ-1: ', 'MYPRJ')
         self.assertEqual(r, self.OK)
@@ -70,6 +73,9 @@ class TestParsedThreadGrab(unittest.TestCase):
         r = self.commit('Merge NOPROJ-1', 'MYPRJ')
         self.assertEqual(r, self.BAD_COMMIT)
 
+        r = self.commit('Merging NOPROJ-1', 'MYPRJ')
+        self.assertEqual(r, self.BAD_COMMIT)
+
     def test_bad_commit_msg(self):
         """
          Test all sorts of messages that not pass commit msg pattern:
@@ -79,6 +85,9 @@ class TestParsedThreadGrab(unittest.TestCase):
         self.assertEqual(r, self.BAD_COMMIT)
 
         r = self.commit('Merge', 'PRJ')
+        self.assertEqual(r, self.BAD_COMMIT)
+
+        r = self.commit('Merging', 'PRJ')
         self.assertEqual(r, self.BAD_COMMIT)
 
         r = self.commit('PRJ-123 commit msg', 'PRJ')

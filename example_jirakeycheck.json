@@ -1,0 +1,12 @@
+{
+    "projects":{
+        "MYPROJ":[
+            "(^my-project)|(.*myprj)",
+            "project"
+            ],
+        "OTHERPROJ":[
+            "^other-project"
+            ]
+    }
+}
+
